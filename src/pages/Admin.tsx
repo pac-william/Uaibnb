@@ -1,21 +1,40 @@
 import { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { getLocations, createLocation, updateLocation, deleteLocation, getCharacteristics } from '../services/api';
 import type { Location, Characteristic } from '../types';
 
+// Keyframes for animations
+const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const slideIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+const shimmer = keyframes`
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+`;
+
 const Container = styled.div`
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 20px;
+  max-width: 1280px;
+  margin: 3rem auto;
+  padding: 0 24px;
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  min-height: 100vh;
 `;
 
 const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
   flex-wrap: wrap;
   gap: 1rem;
+  animation: ${fadeIn} 0.6s ease-out;
 
   @media (max-width: 480px) {
     flex-direction: column;
@@ -24,23 +43,24 @@ const Header = styled.div`
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
-  color: #2c5282;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1a202c;
   position: relative;
   
   &:after {
     content: '';
     position: absolute;
-    bottom: -8px;
+    bottom: -10px;
     left: 0;
-    width: 60px;
-    height: 4px;
+    width: 80px;
+    height: 5px;
     background: #319795;
-    border-radius: 2px;
+    border-radius: 3px;
   }
 
   @media (max-width: 480px) {
-    font-size: 1.5rem;
+    font-size: 2rem;
   }
 `;
 
@@ -48,23 +68,21 @@ const Button = styled.button`
   background: #319795;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 28px;
+  border-radius: 10px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 2px 4px rgba(49, 151, 149, 0.1);
-  width: auto;
-  white-space: nowrap;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(49, 151, 149, 0.2);
+  cursor: pointer;
 
   &:hover {
     background: #2c7a7b;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(49, 151, 149, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(49, 151, 149, 0.3);
   }
 
   &:active {
@@ -73,20 +91,21 @@ const Button = styled.button`
 
   @media (max-width: 480px) {
     width: 100%;
+    padding: 12px;
   }
 `;
 
 const TableContainer = styled.div`
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   overflow-x: auto;
-  margin: 0 -20px;
-  padding: 0 20px;
+  margin: 0 -24px;
+  padding: 0 24px;
 
   @media (max-width: 768px) {
     border-radius: 0;
-    margin: 0 -20px;
+    margin: 0 -24px;
   }
 `;
 
@@ -98,9 +117,9 @@ const Table = styled.table`
 
 const Th = styled.th`
   text-align: left;
-  padding: 16px;
+  padding: 18px;
   background: #f7fafc;
-  color: #4a5568;
+  color: #2d3748;
   font-weight: 600;
   font-size: 0.875rem;
   text-transform: uppercase;
@@ -108,8 +127,19 @@ const Th = styled.th`
   border-bottom: 2px solid #e2e8f0;
 `;
 
+const Tr = styled.tr`
+  animation: ${fadeIn} 0.5s ease-out;
+  animation-delay: ${({ delay }) => delay || 0}s;
+  animation-fill-mode: backwards;
+
+  &:hover {
+    background: #f7fafc;
+    transition: background 0.2s ease;
+  }
+`;
+
 const Td = styled.td`
-  padding: 16px;
+  padding: 18px;
   border-bottom: 1px solid #e2e8f0;
   color: #4a5568;
   font-size: 0.9375rem;
@@ -117,29 +147,16 @@ const Td = styled.td`
 
 const ActionButtons = styled.div`
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-
-  @media (max-width: 480px) {
-    gap: 4px;
-  }
 `;
 
 const ActionButton = styled(Button)`
-  padding: 8px 16px;
+  padding: 10px 18px;
   font-size: 0.875rem;
-  margin: 0;
-  height: 36px;
-  min-width: 36px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  @media (max-width: 480px) {
-    padding: 8px 12px;
-    font-size: 0.8125rem;
-  }
+  height: 38px;
+  min-width: 38px;
 `;
 
 const EditButton = styled(ActionButton)`
@@ -149,11 +166,10 @@ const EditButton = styled(ActionButton)`
   box-shadow: none;
 
   &:hover {
-    background: #f0ffff;
+    background: #e6fffa;
     color: #2c7a7b;
     border-color: #2c7a7b;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(49, 151, 149, 0.1);
+    box-shadow: 0 4px 8px rgba(49, 151, 149, 0.2);
   }
 `;
 
@@ -167,8 +183,7 @@ const DeleteButton = styled(ActionButton)`
     background: #fff5f5;
     color: #c53030;
     border-color: #c53030;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(229, 62, 62, 0.1);
+    box-shadow: 0 4px 8px rgba(229, 62, 62, 0.2);
   }
 `;
 
@@ -178,29 +193,31 @@ const Modal = styled.div`
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: flex-start;
   padding: 20px;
   z-index: 1000;
   overflow-y: auto;
+  animation: ${fadeIn} 0.3s ease-out;
 `;
 
 const ModalContent = styled.div`
   background: white;
-  padding: 32px;
-  border-radius: 12px;
+  padding: 40px;
+  border-radius: 16px;
   width: 100%;
-  max-width: 600px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 640px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
   position: relative;
   margin: 40px auto;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  animation: ${slideIn} 0.4s ease-out;
 
   @media (max-width: 768px) {
-    padding: 20px;
+    padding: 24px;
     margin: 20px auto;
     max-height: calc(100vh - 40px);
   }
@@ -209,62 +226,56 @@ const ModalContent = styled.div`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 24px;
-
-  @media (max-width: 768px) {
-    gap: 16px;
-  }
+  gap: 28px;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const Label = styled.label`
-  font-weight: 500;
-  color: #4a5568;
+  font-weight: 600;
+  color: #2d3748;
   font-size: 0.875rem;
 `;
 
 const Input = styled.input`
-  padding: 12px;
+  padding: 14px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1rem;
   transition: all 0.2s;
   width: 100%;
+  background: #f7fafc;
 
   &:focus {
     outline: none;
     border-color: #319795;
-    box-shadow: 0 0 0 3px rgba(49, 151, 149, 0.1);
+    box-shadow: 0 0 0 4px rgba(49, 151, 149, 0.15);
   }
 
   &::placeholder {
     color: #a0aec0;
   }
-
-  @media (max-width: 480px) {
-    font-size: 16px;
-  }
 `;
 
 const Textarea = styled.textarea`
-  padding: 12px;
+  padding: 14px;
   border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1rem;
-  min-height: 120px;
+  min-height: 140px;
   resize: vertical;
   transition: all 0.2s;
   width: 100%;
+  background: #f7fafc;
 
   &:focus {
     outline: none;
     border-color: #319795;
-    box-shadow: 0 0 0 3px rgba(49, 151, 149, 0.1);
+    box-shadow: 0 0 0 4px rgba(49, 151, 149, 0.15);
   }
 
   &::placeholder {
@@ -275,66 +286,64 @@ const Textarea = styled.textarea`
 const ButtonGroup = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
+  gap: 16px;
+  margin-top: 12px;
 `;
 
 const ModalTitle = styled.h2`
-  color: #2d3748;
-  margin-bottom: 24px;
-  font-size: 1.5rem;
+  color: #1a202c;
+  margin-bottom: 28px;
+  font-size: 1.75rem;
+  font-weight: 700;
 `;
 
 const NoDataMessage = styled.div`
   text-align: center;
-  padding: 48px 0;
+  padding: 64px 0;
   color: #718096;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  animation: ${fadeIn} 0.5s ease-out;
 `;
 
 const CheckboxGroup = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-  margin-top: 8px;
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 10px;
 `;
 
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 6px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid #e2e8f0;
+  background: #fff;
 
   &:hover {
-    background: #f7fafc;
+    background: #e6fffa;
+    border-color: #319795;
   }
 
   input {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
+    accent-color: #319795;
   }
 
   span {
     font-size: 1rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 12px 8px;
+    color: #2d3748;
   }
 `;
 
 const CharacteristicIcon = styled.span`
-  font-size: 1.25rem;
-  min-width: 24px;
+  font-size: 1.5rem;
+  min-width: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -342,23 +351,49 @@ const CharacteristicIcon = styled.span`
 
 const CharacteristicsDisplay = styled.div`
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
   
   span {
-    font-size: 1.25rem;
-  }
-
-  @media (max-width: 768px) {
-    span {
-      font-size: 1rem;
+    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+    &:hover {
+      transform: scale(1.2);
     }
   }
+`;
+
+const ErrorMessage = styled.div`
+  text-align: center;
+  color: #e53e3e;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+  animation: ${fadeIn} 0.5s ease-out;
+`;
+
+// Skeleton Loader Styles
+const SkeletonTable = styled(Table)`
+  background: #f7fafc;
+`;
+
+const SkeletonTd = styled(Td)`
+  padding: 18px;
+`;
+
+const SkeletonText = styled.div`
+  width: ${({ width }) => width || '80%'};
+  height: 20px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 936px 100%;
+  border-radius: 8px;
+  animation: ${shimmer} 1.5s infinite linear;
 `;
 
 const Admin = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [formData, setFormData] = useState({
@@ -367,29 +402,40 @@ const Admin = () => {
     preco: '',
     cidade: '',
     imagem: '',
-    caracteristicas: [] as string[],
+    locacao_caracteristicas: [] as string[],
   });
 
   useEffect(() => {
-    fetchLocations();
-    fetchCharacteristics();
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const [locationsResponse, characteristicsResponse] = await Promise.all([
+          getLocations(),
+          getCharacteristics(),
+        ]);
+        console.log('Locations Response:', locationsResponse.data.records); // Debugging
+        console.log('Characteristics Response:', characteristicsResponse.data.records); // Debugging
+        setLocations(locationsResponse.data.records || []);
+        setCharacteristics(characteristicsResponse.data.records || []);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError('Falha ao carregar dados. Tente novamente.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const fetchLocations = async () => {
     try {
       const response = await getLocations();
-      setLocations(response.data.records);
+      setLocations(response.data.records || []);
     } catch (error) {
       console.error('Erro ao buscar locações:', error);
-    }
-  };
-
-  const fetchCharacteristics = async () => {
-    try {
-      const response = await getCharacteristics();
-      setCharacteristics(response.data.records);
-    } catch (error) {
-      console.error('Erro ao buscar características:', error);
+      setError('Falha ao carregar locações.');
     }
   };
 
@@ -397,12 +443,12 @@ const Admin = () => {
     if (location) {
       setSelectedLocation(location);
       setFormData({
-        titulo: location.fields.titulo,
-        descricao: location.fields.descricao,
-        preco: location.fields.preco.toString(),
-        cidade: location.fields.cidade,
-        imagem: location.fields.imagem,
-        caracteristicas: location.fields.caracteristicas || [],
+        titulo: location.fields.titulo || '',
+        descricao: location.fields.descricao || '',
+        preco: location.fields.preco?.toString() || '',
+        cidade: location.fields.cidade || '',
+        imagem: location.fields.imagem || '',
+        locacao_caracteristicas: Array.isArray(location.fields.locacao_caracteristicas) ? location.fields.locacao_caracteristicas : [],
       });
     } else {
       setSelectedLocation(null);
@@ -412,7 +458,7 @@ const Admin = () => {
         preco: '',
         cidade: '',
         imagem: '',
-        caracteristicas: [],
+        locacao_caracteristicas: [],
       });
     }
     setIsModalOpen(true);
@@ -423,7 +469,7 @@ const Admin = () => {
     try {
       const data = {
         ...formData,
-        preco: Number(formData.preco),
+        preco: Number(formData.preco) || 0,
       };
 
       if (selectedLocation) {
@@ -436,6 +482,7 @@ const Admin = () => {
       fetchLocations();
     } catch (error) {
       console.error('Erro ao salvar locação:', error);
+      setError('Falha ao salvar locação. Tente novamente.');
     }
   };
 
@@ -446,18 +493,19 @@ const Admin = () => {
         fetchLocations();
       } catch (error) {
         console.error('Erro ao excluir locação:', error);
+        setError('Falha ao excluir locação.');
       }
     }
   };
 
   const handleCharacteristicChange = (characteristicId: string) => {
     setFormData(prev => {
-      const isSelected = prev.caracteristicas.includes(characteristicId);
+      const isSelected = prev.locacao_caracteristicas.includes(characteristicId);
       return {
         ...prev,
-        caracteristicas: isSelected
-          ? prev.caracteristicas.filter(id => id !== characteristicId)
-          : [...prev.caracteristicas, characteristicId],
+        locacao_caracteristicas: isSelected
+          ? prev.locacao_caracteristicas.filter(id => id !== characteristicId)
+          : [...prev.locacao_caracteristicas, characteristicId],
       };
     });
   };
@@ -473,6 +521,34 @@ const Admin = () => {
       ));
   };
 
+  // Skeleton Loader Component
+  const SkeletonLoader = () => (
+    <TableContainer>
+      <SkeletonTable>
+        <thead>
+          <tr>
+            <Th>Título</Th>
+            <Th>Cidade</Th>
+            <Th>Preço</Th>
+            <Th>Características</Th>
+            <Th>Ações</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(5)].map((_, index) => (
+            <Tr key={index} delay={index * 0.1}>
+              <SkeletonTd><SkeletonText width="70%" /></SkeletonTd>
+              <SkeletonTd><SkeletonText width="50%" /></SkeletonTd>
+              <SkeletonTd><SkeletonText width="40%" /></SkeletonTd>
+              <SkeletonTd><SkeletonText width="60%" /></SkeletonTd>
+              <SkeletonTd><SkeletonText width="80%" /></SkeletonTd>
+            </Tr>
+          ))}
+        </tbody>
+      </SkeletonTable>
+    </TableContainer>
+  );
+
   return (
     <Container>
       <Header>
@@ -482,52 +558,53 @@ const Admin = () => {
         </Button>
       </Header>
 
-      <TableContainer>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Título</Th>
-              <Th>Cidade</Th>
-              <Th>Preço</Th>
-              <Th>Características</Th>
-              <Th>Ações</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {locations.length === 0 ? (
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+      {isLoading ? (
+        <SkeletonLoader />
+      ) : locations.length === 0 ? (
+        <NoDataMessage>
+          Nenhuma locação cadastrada. Clique em "Nova Locação" para começar!
+        </NoDataMessage>
+      ) : (
+        <TableContainer>
+          <Table>
+            <thead>
               <tr>
-                <Td colSpan={5}>
-                  <NoDataMessage>
-                    Nenhuma locação cadastrada ainda. Clique em "Nova Locação" para começar!
-                  </NoDataMessage>
-                </Td>
+                <Th>Título</Th>
+                <Th>Cidade</Th>
+                <Th>Preço</Th>
+                <Th>Características</Th>
+                <Th>Ações</Th>
               </tr>
-            ) : (
-              locations.map((location) => (
-                <tr key={location.id}>
-                  <Td>{location.fields.titulo}</Td>
-                  <Td>{location.fields.cidade}</Td>
-                  <Td>R$ {location.fields.preco}</Td>
+            </thead>
+            <tbody>
+              {locations.map((location, index) => (
+                <Tr key={location.id} delay={index * 0.1}>
+                  <Td>{location.fields.titulo || 'Sem título'}</Td>
+                  <Td>{location.fields.cidade || 'Cidade não informada'}</Td>
+                  <Td>R$ {location.fields.preco || '0'}</Td>
                   <Td>
                     <CharacteristicsDisplay>
-                      {location.fields.caracteristicas && 
-                        getCharacteristicNames(location.fields.caracteristicas)}
+                      {Array.isArray(location.fields.locacao_caracteristicas) &&
+                        getCharacteristicNames(location.fields.locacao_caracteristicas)}
                     </CharacteristicsDisplay>
                   </Td>
                   <Td>
-                    <ActionButton onClick={() => handleOpenModal(location)}>
-                      ✏️ Editar
-                    </ActionButton>
-                    <DeleteButton onClick={() => handleDelete(location.id)}>
-                      🗑️ Excluir
-                    </DeleteButton>
+                    <ActionButtons>
+                      <EditButton onClick={() => handleOpenModal(location)}>
+                        ✏️ Editar
+                      </EditButton>
+                      <DeleteButton onClick={() => handleDelete(location.id)}>
+                        🗑️ Excluir
+                      </DeleteButton>
+                    </ActionButtons>
                   </Td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </Table>
-      </TableContainer>
+                </Tr>
+              ))}
+            </tbody>
+          </Table>
+        </TableContainer>
+      )}
 
       {isModalOpen && (
         <Modal>
@@ -570,6 +647,8 @@ const Admin = () => {
                     setFormData({ ...formData, preco: e.target.value })
                   }
                   placeholder="Digite o preço por dia"
+                  min="0"
+                  step="0.01"
                   required
                 />
               </FormGroup>
@@ -603,19 +682,23 @@ const Admin = () => {
               <FormGroup>
                 <Label>Características</Label>
                 <CheckboxGroup>
-                  {characteristics.map((characteristic) => (
-                    <CheckboxLabel key={characteristic.id}>
-                      <input
-                        type="checkbox"
-                        checked={formData.caracteristicas.includes(characteristic.id)}
-                        onChange={() => handleCharacteristicChange(characteristic.id)}
-                      />
-                      <CharacteristicIcon>
-                        {characteristic.fields.icone}
-                      </CharacteristicIcon>
-                      <span>{characteristic.fields.nome}</span>
-                    </CheckboxLabel>
-                  ))}
+                  {characteristics.length === 0 ? (
+                    <NoDataMessage>Nenhuma característica disponível</NoDataMessage>
+                  ) : (
+                    characteristics.map((characteristic) => (
+                      <CheckboxLabel key={characteristic.id}>
+                        <input
+                          type="checkbox"
+                          checked={formData.locacao_caracteristicas.includes(characteristic.id)}
+                          onChange={() => handleCharacteristicChange(characteristic.id)}
+                        />
+                        <CharacteristicIcon>
+                          {characteristic.fields.icone}
+                        </CharacteristicIcon>
+                        <span>{characteristic.fields.nome}</span>
+                      </CheckboxLabel>
+                    ))
+                  )}
                 </CheckboxGroup>
               </FormGroup>
 
@@ -635,4 +718,4 @@ const Admin = () => {
   );
 };
 
-export default Admin; 
+export default Admin;
