@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
 import { getLocations } from '../services/api';
 import type { Location } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 // Keyframes for animations
 const fadeIn = keyframes`
@@ -191,6 +192,7 @@ const Home = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -201,15 +203,15 @@ const Home = () => {
         console.log('API Response:', response.data.records); // Debugging
         setLocations(response.data.records || []);
       } catch (error) {
-        console.error('Error fetching locations:', error);
-        setError('Falha ao carregar os locais. Tente novamente mais tarde.');
+        showToast('Erro ao carregar localizações. Tente novamente.', 'error');
+        setError('Não foi possível carregar as localizações.');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchLocations();
-  }, []);
+  }, [showToast]);
 
   const handleLocationClick = (locationId: string) => {
     navigate(`/location/${locationId}`);

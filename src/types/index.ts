@@ -14,8 +14,14 @@ export interface Characteristic {
   id: string;
   fields: {
     nome: string;
-    descricao: string;
+    icone: string;
   };
+}
+
+export interface StyledProps {
+  delay?: number;
+  width?: string;
+  height?: string;
 }
 
 export interface LocationResponse {

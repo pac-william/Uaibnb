@@ -1,9 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import LocationDetail from './pages/LocationDetail';
-import Admin from './pages/Admin';
-import Characteristics from './pages/Characteristics';
-import Header from './components/Header';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { ToastProvider } from './contexts/ToastContext';
+import Routes from './routes';
 import { createGlobalStyle } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
@@ -32,16 +29,12 @@ const GlobalStyle = createGlobalStyle`
 
 function App() {
   return (
-    <Router>
-      <GlobalStyle />
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/location/:id" element={<LocationDetail />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/characteristics" element={<Characteristics />} />
-      </Routes>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <GlobalStyle />
+        <Routes />
+      </Router>
+    </ToastProvider>
   );
 }
 

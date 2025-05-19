@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { getLocations, createLocation, updateLocation, deleteLocation, getCharacteristics } from '../services/api';
-import type { Location, Characteristic } from '../types';
+import type { Location, Characteristic, StyledProps, LocationResponse, CharacteristicResponse } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 // Keyframes for animations
 const fadeIn = keyframes`
@@ -127,7 +128,7 @@ const Th = styled.th`
   border-bottom: 2px solid #e2e8f0;
 `;
 
-const Tr = styled.tr`
+const Tr = styled.tr<StyledProps>`
   animation: ${fadeIn} 0.5s ease-out;
   animation-delay: ${({ delay }) => delay || 0}s;
   animation-fill-mode: backwards;
@@ -380,22 +381,23 @@ const SkeletonTd = styled(Td)`
   padding: 18px;
 `;
 
-const SkeletonText = styled.div`
-  width: ${({ width }) => width || '80%'};
+const SkeletonLine = styled.div<StyledProps>`
   height: 20px;
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 936px 100%;
-  border-radius: 8px;
-  animation: ${shimmer} 1.5s infinite linear;
+  background-size: 200% 100%;
+  animation: ${shimmer} 1.5s infinite;
+  border-radius: 4px;
+  width: ${({ width }) => width || '100%'};
 `;
 
 const Admin = () => {
+  const { showToast } = useToast();
   const [locations, setLocations] = useState<Location[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [formData, setFormData] = useState({
     titulo: '',
     descricao: '',
@@ -406,42 +408,29 @@ const Admin = () => {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const [locationsResponse, characteristicsResponse] = await Promise.all([
-          getLocations(),
-          getCharacteristics(),
-        ]);
-        console.log('Locations Response:', locationsResponse.data.records); // Debugging
-        console.log('Characteristics Response:', characteristicsResponse.data.records); // Debugging
-        setLocations(locationsResponse.data.records || []);
-        setCharacteristics(characteristicsResponse.data.records || []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Falha ao carregar dados. Tente novamente.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
-  const fetchLocations = async () => {
+  const fetchData = async () => {
     try {
-      const response = await getLocations();
-      setLocations(response.data.records || []);
+      setLoading(true);
+      const [locationsResponse, characteristicsResponse] = await Promise.all([
+        getLocations(),
+        getCharacteristics()
+      ]);
+      setLocations(locationsResponse.data.records);
+      setCharacteristics(characteristicsResponse.data.records);
     } catch (error) {
-      console.error('Erro ao buscar locações:', error);
-      setError('Falha ao carregar locações.');
+      showToast('Erro ao carregar dados', 'error');
+      console.error('Erro ao carregar dados:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleOpenModal = (location?: Location) => {
     if (location) {
-      setSelectedLocation(location);
+      setEditingLocation(location);
       setFormData({
         titulo: location.fields.titulo || '',
         descricao: location.fields.descricao || '',
@@ -451,7 +440,7 @@ const Admin = () => {
         locacao_caracteristicas: Array.isArray(location.fields.locacao_caracteristicas) ? location.fields.locacao_caracteristicas : [],
       });
     } else {
-      setSelectedLocation(null);
+      setEditingLocation(null);
       setFormData({
         titulo: '',
         descricao: '',
@@ -466,23 +455,30 @@ const Admin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editingLocation) return;
+
     try {
       const data = {
-        ...formData,
-        preco: Number(formData.preco) || 0,
+        titulo: editingLocation.fields.titulo,
+        descricao: editingLocation.fields.descricao,
+        preco: editingLocation.fields.preco,
+        cidade: editingLocation.fields.cidade,
+        imagem: editingLocation.fields.imagem,
+        locacao_caracteristicas: editingLocation.fields.locacao_caracteristicas
       };
 
-      if (selectedLocation) {
-        await updateLocation(selectedLocation.id, data);
+      if (editingLocation.id) {
+        await updateLocation(editingLocation.id, data);
+        showToast('Locação atualizada com sucesso!', 'success');
       } else {
         await createLocation(data);
+        showToast('Locação criada com sucesso!', 'success');
       }
-      
-      setIsModalOpen(false);
-      fetchLocations();
+      setEditingLocation(null);
+      fetchData();
     } catch (error) {
+      showToast('Erro ao salvar locação', 'error');
       console.error('Erro ao salvar locação:', error);
-      setError('Falha ao salvar locação. Tente novamente.');
     }
   };
 
@@ -490,10 +486,11 @@ const Admin = () => {
     if (window.confirm('Tem certeza que deseja excluir esta locação?')) {
       try {
         await deleteLocation(id);
-        fetchLocations();
+        showToast('Locação excluída com sucesso!', 'success');
+        fetchData();
       } catch (error) {
+        showToast('Erro ao excluir locação', 'error');
         console.error('Erro ao excluir locação:', error);
-        setError('Falha ao excluir locação.');
       }
     }
   };
@@ -537,11 +534,11 @@ const Admin = () => {
         <tbody>
           {[...Array(5)].map((_, index) => (
             <Tr key={index} delay={index * 0.1}>
-              <SkeletonTd><SkeletonText width="70%" /></SkeletonTd>
-              <SkeletonTd><SkeletonText width="50%" /></SkeletonTd>
-              <SkeletonTd><SkeletonText width="40%" /></SkeletonTd>
-              <SkeletonTd><SkeletonText width="60%" /></SkeletonTd>
-              <SkeletonTd><SkeletonText width="80%" /></SkeletonTd>
+              <SkeletonTd><SkeletonLine width="70%" /></SkeletonTd>
+              <SkeletonTd><SkeletonLine width="50%" /></SkeletonTd>
+              <SkeletonTd><SkeletonLine width="40%" /></SkeletonTd>
+              <SkeletonTd><SkeletonLine width="60%" /></SkeletonTd>
+              <SkeletonTd><SkeletonLine width="80%" /></SkeletonTd>
             </Tr>
           ))}
         </tbody>
@@ -559,7 +556,7 @@ const Admin = () => {
       </Header>
 
       {error && <ErrorMessage>{error}</ErrorMessage>}
-      {isLoading ? (
+      {loading ? (
         <SkeletonLoader />
       ) : locations.length === 0 ? (
         <NoDataMessage>
@@ -610,7 +607,7 @@ const Admin = () => {
         <Modal>
           <ModalContent>
             <ModalTitle>
-              {selectedLocation ? 'Editar Locação' : 'Nova Locação'}
+              {editingLocation ? 'Editar Locação' : 'Nova Locação'}
             </ModalTitle>
             <Form onSubmit={handleSubmit}>
               <FormGroup>
@@ -707,7 +704,7 @@ const Admin = () => {
                   Cancelar
                 </Button>
                 <Button type="submit">
-                  {selectedLocation ? 'Atualizar' : 'Criar'}
+                  {editingLocation ? 'Atualizar' : 'Criar'}
                 </Button>
               </ButtonGroup>
             </Form>
