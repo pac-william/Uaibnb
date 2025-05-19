@@ -182,9 +182,9 @@ const ErrorMessage = styled.div`
 
 const InputSearch = styled.input`
   display: block;
-  width: 100%;
+  width: 80%;
   max-width: 480px;
-  margin: 0 auto 32px;
+  margin: 50px 50px 50px 20px;
   padding: 12px 16px;
   font-size: 1rem;
   border-radius: 12px;
@@ -194,6 +194,10 @@ const InputSearch = styled.input`
 
   &:focus {
     border-color: #2b6cb0;
+  }
+
+  @media screen and (max-width: 768px) {
+    margin: 0 auto 32px;
   }
 `;
 
@@ -266,7 +270,7 @@ const Home = () => {
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {isLoading ? (
         <SkeletonLoader />
-      ) : locations.length === 0 ? (
+      ) : filteredLocations.length === 0 ? (
         <ErrorMessage>Nenhum local encontrado.</ErrorMessage>
       ) : (
         <Grid>
