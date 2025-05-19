@@ -179,10 +179,29 @@ const ErrorMessage = styled.div`
   margin-top: 20px;
 `;
 
+const InputSearch = styled.input`
+  display: block;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 32px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: 1px solid #ccc;
+  outline: none;
+  transition: 0.3s border-color;
+
+  &:focus {
+    border-color: #2b6cb0;
+  }
+`;
+
+
 const Home = () => {
   const [locations, setLocations] = useState<Location[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -208,6 +227,10 @@ const Home = () => {
     navigate(`/location/${locationId}`);
   };
 
+  const filteredLocations = locations.filter((location) =>
+    location.fields.titulo?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   // Skeleton Loader Component
   const SkeletonLoader = () => (
     <Grid>
@@ -232,6 +255,12 @@ const Home = () => {
   return (
     <Container>
       <Title>Lugares Incríveis para Aluguel</Title>
+      <InputSearch
+        type="text"
+        placeholder="Buscar..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+      />
       {error && <ErrorMessage>{error}</ErrorMessage>}
       {isLoading ? (
         <SkeletonLoader />
@@ -239,7 +268,7 @@ const Home = () => {
         <ErrorMessage>Nenhum local encontrado.</ErrorMessage>
       ) : (
         <Grid>
-          {locations.map((location, index) => (
+          {filteredLocations.map((location, index) => (
             <Card
               key={location.id}
               onClick={() => handleLocationClick(location.id)}
