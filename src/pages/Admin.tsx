@@ -23,7 +23,6 @@ const Container = styled.div`
   max-width: 1280px;
   margin: 3rem auto;
   padding: 0 24px;
-  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
   min-height: 100vh;
 `;
 
