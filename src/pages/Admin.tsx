@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { getLocations, createLocation, updateLocation, deleteLocation, getCharacteristics } from '../services/api';
-import type { Location, Characteristic, StyledProps, LocationResponse, CharacteristicResponse } from '../types';
+import type { Location, Characteristic, StyledProps, LocationResponse, CharacteristicResponse, LocationFormData } from '../types';
 import { useToast } from '../contexts/ToastContext';
 
 // Keyframes for animations
@@ -398,13 +398,13 @@ const Admin = () => {
   const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LocationFormData>({
     titulo: '',
     descricao: '',
-    preco: '',
+    preco: 0,
     cidade: '',
     imagem: '',
-    locacao_caracteristicas: [] as string[],
+    locacao_caracteristicas: []
   });
 
   useEffect(() => {
@@ -432,22 +432,22 @@ const Admin = () => {
     if (location) {
       setEditingLocation(location);
       setFormData({
-        titulo: location.fields.titulo || '',
-        descricao: location.fields.descricao || '',
-        preco: location.fields.preco?.toString() || '',
-        cidade: location.fields.cidade || '',
-        imagem: location.fields.imagem || '',
-        locacao_caracteristicas: Array.isArray(location.fields.locacao_caracteristicas) ? location.fields.locacao_caracteristicas : [],
+        titulo: location.fields.titulo,
+        descricao: location.fields.descricao,
+        preco: location.fields.preco,
+        cidade: location.fields.cidade,
+        imagem: location.fields.imagem,
+        locacao_caracteristicas: location.fields.locacao_caracteristicas || []
       });
     } else {
       setEditingLocation(null);
       setFormData({
         titulo: '',
         descricao: '',
-        preco: '',
+        preco: 0,
         cidade: '',
         imagem: '',
-        locacao_caracteristicas: [],
+        locacao_caracteristicas: []
       });
     }
     setIsModalOpen(true);
@@ -455,26 +455,23 @@ const Admin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingLocation) return;
-
     try {
-      const data = {
-        titulo: editingLocation.fields.titulo,
-        descricao: editingLocation.fields.descricao,
-        preco: editingLocation.fields.preco,
-        cidade: editingLocation.fields.cidade,
-        imagem: editingLocation.fields.imagem,
-        locacao_caracteristicas: editingLocation.fields.locacao_caracteristicas
-      };
-
-      if (editingLocation.id) {
-        await updateLocation(editingLocation.id, data);
+      if (editingLocation) {
+        await updateLocation(editingLocation.id, formData);
         showToast('Locação atualizada com sucesso!', 'success');
       } else {
-        await createLocation(data);
+        await createLocation(formData);
         showToast('Locação criada com sucesso!', 'success');
       }
       setEditingLocation(null);
+      setFormData({
+        titulo: '',
+        descricao: '',
+        preco: 0,
+        cidade: '',
+        imagem: '',
+        locacao_caracteristicas: []
+      });
       fetchData();
     } catch (error) {
       showToast('Erro ao salvar locação', 'error');
@@ -641,7 +638,7 @@ const Admin = () => {
                   type="number"
                   value={formData.preco}
                   onChange={(e) =>
-                    setFormData({ ...formData, preco: e.target.value })
+                    setFormData({ ...formData, preco: Number(e.target.value) })
                   }
                   placeholder="Digite o preço por dia"
                   min="0"
