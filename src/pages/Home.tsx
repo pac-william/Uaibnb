@@ -10,11 +10,6 @@ const fadeIn = keyframes`
   to { opacity: 1; transform: translateY(0); }
 `;
 
-const scaleUp = keyframes`
-  from { transform: scale(1); }
-  to { transform: scale(1.02); }
-`;
-
 const shimmer = keyframes`
   0% { background-position: -468px 0; }
   100% { background-position: 468px 0; }
@@ -60,7 +55,6 @@ const Card = styled.div`
   &:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-    animation: ${scaleUp} 0.3s ease;
   }
 
   &:hover img {
