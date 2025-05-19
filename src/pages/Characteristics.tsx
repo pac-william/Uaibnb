@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { getCharacteristics, createCharacteristic, updateCharacteristic } from '../services/api';
 import type { Characteristic } from '../types';
+import { useToast } from '../contexts/ToastContext';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -223,6 +224,7 @@ const IconPreview = styled.div`
 `;
 
 const Characteristics = () => {
+  const { showToast } = useToast();
   const [characteristics, setCharacteristics] = useState<Characteristic[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCharacteristic, setSelectedCharacteristic] = useState<Characteristic | null>(null);
@@ -237,10 +239,13 @@ const Characteristics = () => {
 
   const fetchCharacteristics = async () => {
     try {
+      setIsLoading(true);
       const response = await getCharacteristics();
       setCharacteristics(response.data.records);
     } catch (error) {
-      console.error('Erro ao buscar características:', error);
+      showToast('Erro ao carregar características. Tente novamente.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -266,14 +271,15 @@ const Characteristics = () => {
     try {
       if (selectedCharacteristic) {
         await updateCharacteristic(selectedCharacteristic.id, formData);
+        showToast('Característica atualizada com sucesso!', 'success');
       } else {
         await createCharacteristic(formData);
+        showToast('Característica criada com sucesso!', 'success');
       }
-      
       setIsModalOpen(false);
       fetchCharacteristics();
     } catch (error) {
-      console.error('Erro ao salvar característica:', error);
+      showToast('Erro ao salvar característica. Tente novamente.', 'error');
     }
   };
 
@@ -281,9 +287,10 @@ const Characteristics = () => {
     if (window.confirm('Tem certeza que deseja excluir esta característica?')) {
       try {
         await deleteCharacteristic(id);
+        showToast('Característica excluída com sucesso!', 'success');
         fetchCharacteristics();
       } catch (error) {
-        console.error('Erro ao excluir característica:', error);
+        showToast('Erro ao excluir característica. Tente novamente.', 'error');
       }
     }
   };

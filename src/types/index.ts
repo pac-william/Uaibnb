@@ -1,3 +1,5 @@
+import { HTMLAttributes } from 'react';
+
 export interface Location {
   id: string;
   fields: {
@@ -14,14 +16,33 @@ export interface Characteristic {
   id: string;
   fields: {
     nome: string;
-    descricao: string;
+    icone: string;
   };
 }
 
+export interface StyledProps extends HTMLAttributes<HTMLElement> {
+  delay?: number;
+  width?: string;
+  height?: string;
+}
+
 export interface LocationResponse {
-  records: Location[];
+  data: {
+    records: Location[];
+  };
 }
 
 export interface CharacteristicResponse {
-  records: Characteristic[];
+  data: {
+    records: Characteristic[];
+  };
+}
+
+export interface LocationFormData {
+  titulo: string;
+  descricao: string;
+  preco: number;
+  cidade: string;
+  imagem: string;
+  locacao_caracteristicas?: string[];
 } 
