@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
+import { useToast } from '../contexts/ToastContext';
 import { getLocations } from '../services/api';
 import type { Location } from '../types';
-import { useToast } from '../contexts/ToastContext';
+import FeatureName from './FeatureName';
 
 // Keyframes for animations
 const fadeIn = keyframes`
@@ -50,7 +51,6 @@ const Card = styled.div`
   position: relative;
   animation: ${fadeIn} 0.5s ease-out;
   animation-fill-mode: backwards;
-  animation-delay: ${({ delay }) => delay || 0}s;
 
   &:hover {
     transform: translateY(-8px) scale(1.02);
@@ -127,22 +127,6 @@ const CharacteristicsList = styled.div`
   gap: 8px;
 `;
 
-const Badge = styled.span`
-  background: #e6fffa;
-  color: #319795;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: background 0.3s ease, transform 0.3s ease;
-
-  ${Card}:hover & {
-    background: #b2f5ea;
-    transform: translateY(-2px);
-  }
-`;
-
-// Skeleton Loader Styles
 const SkeletonCard = styled(Card)`
   background: #f7fafc;
   box-shadow: none;
@@ -156,7 +140,7 @@ const SkeletonImage = styled.div`
   animation: ${shimmer} 1.5s infinite linear;
 `;
 
-const SkeletonText = styled.div`
+const SkeletonText = styled.div<{ width?: string; height?: string }>`
   width: ${({ width }) => width || '80%'};
   height: ${({ height }) => height || '20px'};
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
@@ -241,13 +225,13 @@ const Home = () => {
   const SkeletonLoader = () => (
     <Grid>
       {[...Array(6)].map((_, index) => (
-        <SkeletonCard key={index} delay={index * 0.1}>
+        <SkeletonCard key={index}>
           <SkeletonImage />
           <Content>
-            <SkeletonText width="70%" height="28px" />
-            <SkeletonText width="90%" />
-            <SkeletonText width="60%" height="24px" />
-            <SkeletonText width="50%" />
+            <SkeletonText className="w-70% h-28px" />
+            <SkeletonText className="w-90%" />
+            <SkeletonText className="w-60% h-24px" />
+            <SkeletonText className="w-50%" />
             <CharacteristicsList>
               <SkeletonBadge />
               <SkeletonBadge />
@@ -274,12 +258,8 @@ const Home = () => {
         <ErrorMessage>Nenhum local encontrado.</ErrorMessage>
       ) : (
         <Grid>
-          {filteredLocations.map((location, index) => (
-            <Card
-              key={location.id}
-              onClick={() => handleLocationClick(location.id)}
-              delay={index * 0.1}
-            >
+          {filteredLocations?.map((location) => (
+            <Card key={location.id} onClick={() => handleLocationClick(location.id)}>
               <Image
                 src={location.fields.imagem || 'https://via.placeholder.com/300'}
                 alt={location.fields.titulo || 'Local'}
@@ -289,14 +269,11 @@ const Home = () => {
                 <Description>{location.fields.descricao || 'Sem descrição'}</Description>
                 <Price>R$ {location.fields.preco || '0'}/dia</Price>
                 <City>{location.fields.cidade || 'Cidade não informada'}</City>
-                {Array.isArray(location.fields.locacao_caracteristicas) &&
-                  location.fields.locacao_caracteristicas.length > 0 && (
-                    <CharacteristicsList>
-                      {location.fields.locacao_caracteristicas.map((charId) => (
-                        <Badge key={charId}>Característica {charId}</Badge>
-                      ))}
-                    </CharacteristicsList>
-                  )}
+                <CharacteristicsList>
+                  {location.fields.locacao_caracteristicas?.map((charId) => (
+                    <FeatureName key={charId} charId={charId} />
+                  ))}
+                </CharacteristicsList>
               </Content>
             </Card>
           ))}
