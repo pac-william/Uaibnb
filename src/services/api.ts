@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { CharacteristicResponse, LocationResponse, Location, Characteristic } from '../types';
+import type { Characteristic, CharacteristicResponse, Location, LocationResponse } from '../types';
 
 const api = axios.create({
   baseURL: 'https://api.airtable.com/v0/appqkjRYvyIwSHLR7',
@@ -24,7 +24,7 @@ export const deleteLocation = (id: string) =>
 export const getCharacteristics = () =>
   api.get<CharacteristicResponse>('/caracteristicas?view=Grid%20view');
 
-export const getCharacteristic = (id: string) =>
+export const getCharacteristicById = (id: string) =>
   api.get<Characteristic>(`/caracteristicas/${id}`);
 
 export const createCharacteristic = (data: Omit<Characteristic['fields'], 'id'>) =>
