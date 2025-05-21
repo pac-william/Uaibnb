@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { getLocation, getCharacteristics } from '../services/api';
-import type { Location, Characteristic } from '../types';
+import { getCharacteristics, getLocation } from '../services/api';
+import type { Characteristic, Location } from '../types';
 
 const Container = styled.div`
   max-width: 1200px;
