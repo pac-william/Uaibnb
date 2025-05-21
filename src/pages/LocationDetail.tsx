@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { getCharacteristics, getLocation } from '../services/api';
-import type { Characteristic, Location } from '../types';
+import { getLocation } from '../services/api';
+import type { Location } from '../types';
+import FeatureName from './FeatureName';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -76,53 +77,25 @@ const CharacteristicsTitle = styled.h2`
 `;
 
 const CharacteristicsList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-`;
-
-const CharacteristicCard = styled.div`
-  background: #f7fafc;
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-`;
-
-const CharacteristicName = styled.h3`
-  font-size: 1.125rem;
-  color: #2d3748;
-  margin-bottom: 8px;
-`;
-
-const CharacteristicDescription = styled.p`
-  color: #4a5568;
-  font-size: 0.875rem;
 `;
 
 const LocationDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [location, setLocation] = useState<Location | null>(null);
-  const [characteristics, setCharacteristics] = useState<Record<string, Characteristic>>({});
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         if (id) {
-          const [locationRes, characteristicsRes] = await Promise.all([
+          const [locationRes] = await Promise.all([
             getLocation(id),
-            getCharacteristics(),
           ]);
 
           setLocation(locationRes.data);
-          const characteristicsMap = characteristicsRes.data.records.reduce(
-            (acc, char) => ({
-              ...acc,
-              [char.id]: char,
-            }),
-            {}
-          );
-          setCharacteristics(characteristicsMap);
         }
       } catch (error) {
         console.error('Error fetching location details:', error);
@@ -151,19 +124,9 @@ const LocationDetail = () => {
         <CharacteristicsSection>
           <CharacteristicsTitle>Características</CharacteristicsTitle>
           <CharacteristicsList>
-            {location.fields.locacao_caracteristicas.map((charId) => {
-              const characteristic = characteristics[charId];
-              if (!characteristic) return null;
-
-              return (
-                <CharacteristicCard key={charId}>
-                  <CharacteristicName>{characteristic.fields.nome}</CharacteristicName>
-                  <CharacteristicDescription>
-                    {characteristic.fields.descricao}
-                  </CharacteristicDescription>
-                </CharacteristicCard>
-              );
-            })}
+            {location.fields.locacao_caracteristicas?.map((charId) => (
+              <FeatureName key={charId} charId={charId} />
+            ))}
           </CharacteristicsList>
         </CharacteristicsSection>
       )}
