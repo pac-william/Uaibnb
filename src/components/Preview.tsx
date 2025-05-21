@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
 import {
-  SimpleGrid,
-  Box,
-  Image,
-  Text,
-  Heading,
-  VStack,
   Badge,
+  Box,
   Container,
+  Heading,
+  Image,
+  SimpleGrid,
+  Text,
+  VStack,
 } from '@chakra-ui/react';
-import { getLocations, getCharacteristics } from '../services/api';
-import type { Location, Characteristic } from '../types';
+import { useEffect, useState } from 'react';
+import { getCharacteristics, getLocations } from '../services/api';
+import type { Characteristic, Location } from '../types';
 
 const Preview = () => {
   const [locations, setLocations] = useState<Location[]>([]);
@@ -48,7 +48,7 @@ const Preview = () => {
       <Heading mb={8} textAlign="center">
         Locações Disponíveis
       </Heading>
-      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={8}>
+      <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} gap={8}>
         {locations.map((location) => (
           <Box
             key={location.id}
@@ -64,7 +64,7 @@ const Preview = () => {
               width="100%"
               objectFit="cover"
             />
-            <VStack p={4} align="stretch" spacing={3}>
+            <VStack p={4} align="stretch" gap={3}>
               <Heading size="md">{location.fields.titulo}</Heading>
               <Text color="gray.600">{location.fields.descricao}</Text>
               <Text fontWeight="bold" fontSize="xl" color="teal.600">
