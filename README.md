@@ -31,24 +31,35 @@ Plataforma web para aluguel de propriedades inspirada no Airbnb, desenvolvida co
 
 ```
 src/
-├── components/           # Componentes reutilizáveis
-│   ├── Header.tsx       # Cabeçalho com navegação
-│   ├── FavoriteButton.tsx # Botão de favoritos
-│   ├── LocationModal.tsx # Modal para locações
-│   └── ...
-├── pages/               # Páginas da aplicação
-│   ├── Home.tsx        # Página inicial com lista de propriedades
-│   ├── LocationDetail.tsx # Detalhes da propriedade
-│   ├── Favorites.tsx   # Página de favoritos
-│   ├── Admin.tsx       # Área administrativa
-│   └── ...
-├── contexts/           # Contextos React
-│   ├── ToastContext.tsx # Sistema de notificações
+├── components/                # Componentes reutilizáveis
+│   ├── Header.tsx            # Cabeçalho com navegação
+│   ├── FavoriteButton.tsx    # Botão de favoritos
+│   ├── LocationModal.tsx     # Modal para locações
+│   ├── CharacteristicModal.tsx # Modal para características
+│   ├── LocationsList.tsx     # Lista de locações
+│   ├── CharacteristicsList.tsx # Lista de características
+│   ├── Toast.tsx             # Componente de notificação
+│   ├── Preview.tsx           # Componente de preview
+│   └── Navbar.tsx            # Barra de navegação
+├── pages/                    # Páginas da aplicação
+│   ├── Home.tsx             # Página inicial com lista de propriedades
+│   ├── LocationDetail.tsx   # Detalhes da propriedade
+│   ├── Favorites.tsx        # Página de favoritos
+│   ├── Admin.tsx            # Área administrativa
+│   ├── Characteristics.tsx  # Gerenciamento de características
+│   └── FeatureName.tsx      # Componente para exibir características
+├── contexts/                # Contextos React
+│   ├── ToastContext.tsx     # Sistema de notificações
 │   └── FavoritesContext.tsx # Gerenciamento de favoritos
-├── services/           # Serviços e APIs
-│   └── api.ts          # Configuração da API Airtable
-├── types.ts           # Definições de tipos TypeScript
-└── routes.tsx         # Configuração das rotas
+├── services/                # Serviços e APIs
+│   └── api.ts               # Configuração da API Airtable
+├── types/                   # Tipos TypeScript adicionais
+│   └── index.ts             # Definições de tipos extra
+├── App.tsx                  # Componente principal da aplicação
+├── main.tsx                 # Ponto de entrada do React
+├── routes.tsx               # Configuração das rotas
+├── types.ts                 # Definições principais de tipos TypeScript
+└── style.css                # Estilos globais
 ```
 
 ## 🎯 Funcionalidades por Página
