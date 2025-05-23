@@ -1,9 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled, { keyframes } from 'styled-components';
-import { useToast } from '../contexts/ToastContext';
-import { getLocations } from '../services/api';
-import type { Location } from '../types';
+import { useFavorites } from '../contexts/FavoritesContext';
 import FeatureName from './FeatureName';
 import FavoriteButton from '../components/FavoriteButton';
 
@@ -11,11 +8,6 @@ import FavoriteButton from '../components/FavoriteButton';
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
-`;
-
-const shimmer = keyframes`
-  0% { background-position: -468px 0; }
-  100% { background-position: 468px 0; }
 `;
 
 const Container = styled.div`
@@ -128,138 +120,55 @@ const CharacteristicsList = styled.div`
   gap: 8px;
 `;
 
-const SkeletonCard = styled(Card)`
-  background: #f7fafc;
-  box-shadow: none;
-`;
-
-const SkeletonImage = styled.div`
-  width: 100%;
-  height: 220px;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 936px 100%;
-  animation: ${shimmer} 1.5s infinite linear;
-`;
-
-const SkeletonText = styled.div<{ width?: string; height?: string }>`
-  width: ${({ width }) => width || '80%'};
-  height: ${({ height }) => height || '20px'};
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 936px 100%;
-  border-radius: 8px;
-  animation: ${shimmer} 1.5s infinite linear;
-  margin-bottom: 12px;
-`;
-
-const SkeletonBadge = styled(SkeletonText)`
-  width: 80px;
-  height: 24px;
-  display: inline-block;
-  margin-right: 8px;
-`;
-
-const ErrorMessage = styled.div`
+const EmptyMessage = styled.div`
   text-align: center;
-  color: #e53e3e;
-  font-size: 1.2rem;
-  margin-top: 20px;
+  color: #4a5568;
+  font-size: 1.5rem;
+  margin-top: 64px;
+  animation: ${fadeIn} 0.6s ease-out;
 `;
 
-const InputSearch = styled.input`
+const BackToHomeButton = styled.button`
   display: block;
-  width: 80%;
-  max-width: 480px;
-  margin: 50px 50px 50px 20px;
-  padding: 12px 16px;
+  margin: 40px auto 0;
+  padding: 12px 24px;
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 8px;
   font-size: 1rem;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  outline: none;
-  transition: 0.3s border-color;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 
-  &:focus {
-    border-color: #2b6cb0;
-  }
-
-  @media screen and (max-width: 768px) {
-    margin: 0 auto 32px;
+  &:hover {
+    background: #3182ce;
+    transform: translateY(-2px);
   }
 `;
 
-
-const Home = () => {
-  const [locations, setLocations] = useState<Location[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+const Favorites = () => {
+  const { favorites } = useFavorites();
   const navigate = useNavigate();
-  const { showToast } = useToast();
-
-  useEffect(() => {
-    const fetchLocations = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await getLocations();
-        console.log('API Response:', response.data.records); // Debugging
-        setLocations(response.data.records || []);
-      } catch (error) {
-        showToast('Erro ao carregar localizações. Tente novamente.', 'error');
-        setError('Não foi possível carregar as localizações.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLocations();
-  }, [showToast]);
 
   const handleLocationClick = (locationId: string) => {
     navigate(`/location/${locationId}`);
   };
 
-  const filteredLocations = locations.filter((location) =>
-    location.fields.titulo?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  // Skeleton Loader Component
-  const SkeletonLoader = () => (
-    <Grid>
-      {[...Array(6)].map((_, index) => (
-        <SkeletonCard key={index}>
-          <SkeletonImage />
-          <Content>
-            <SkeletonText className="w-70% h-28px" />
-            <SkeletonText className="w-90%" />
-            <SkeletonText className="w-60% h-24px" />
-            <SkeletonText className="w-50%" />
-            <CharacteristicsList>
-              <SkeletonBadge />
-              <SkeletonBadge />
-            </CharacteristicsList>
-          </Content>
-        </SkeletonCard>
-      ))}
-    </Grid>
-  );
-
   return (
     <Container>
-      <Title>Lugares Incríveis para Aluguel</Title>
-      <InputSearch
-        type="text"
-        placeholder="Buscar..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      {error && <ErrorMessage>{error}</ErrorMessage>}
-      {isLoading ? (
-        <SkeletonLoader />
-      ) : filteredLocations.length === 0 ? (
-        <ErrorMessage>Nenhum local encontrado.</ErrorMessage>
+      <Title>Seus Lugares Favoritos</Title>
+
+      {favorites.length === 0 ? (
+        <EmptyMessage>
+          <p>Você ainda não adicionou nenhum lugar aos favoritos.</p>
+          <BackToHomeButton onClick={() => navigate('/')}>
+            Voltar para a página inicial
+          </BackToHomeButton>
+        </EmptyMessage>
       ) : (
         <Grid>
-          {filteredLocations?.map((location) => (
+          {favorites.map((location) => (
             <Card key={location.id} onClick={() => handleLocationClick(location.id)}>
               <Image
                 src={location.fields.imagem || 'https://via.placeholder.com/300'}
@@ -285,4 +194,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Favorites; 

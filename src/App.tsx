@@ -1,5 +1,6 @@
 import { BrowserRouter as Router } from 'react-router-dom';
 import { ToastProvider } from './contexts/ToastContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 import Routes from './routes';
 import { createGlobalStyle } from 'styled-components';
 
@@ -30,10 +31,12 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   return (
     <ToastProvider>
-      <Router>
-        <GlobalStyle />
-        <Routes />
-      </Router>
+      <FavoritesProvider>
+        <Router>
+          <GlobalStyle />
+          <Routes />
+        </Router>
+      </FavoritesProvider>
     </ToastProvider>
   );
 }

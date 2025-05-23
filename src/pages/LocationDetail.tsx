@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { getLocation } from '../services/api';
 import type { Location } from '../types';
 import FeatureName from './FeatureName';
+import FavoriteButton from '../components/FavoriteButton';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -32,6 +33,7 @@ const ImageContainer = styled.div`
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 24px;
+  position: relative;
 `;
 
 const Image = styled.img`
@@ -114,6 +116,7 @@ const LocationDetail = () => {
       <BackButton onClick={() => navigate('/')}>← Voltar</BackButton>
       <ImageContainer>
         <Image src={location.fields.imagem} alt={location.fields.titulo} />
+        <FavoriteButton location={location} size="large" />
       </ImageContainer>
       <Title>{location.fields.titulo}</Title>
       <Description>{location.fields.descricao}</Description>
